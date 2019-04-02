@@ -37,7 +37,13 @@ class MapParams(object):
 
     # Обновление параметров карты по нажатой клавише.
     def update(self, event):
-        pass
+        if event.key == 280:
+            if self.zoom != 17:
+                self.zoom += 1
+        if event.key == 281:
+            if self.zoom != 0:
+                self.zoom -= 1
+
 
     # Преобразование экранных координат в географические.
     def screen_to_geo(self, pos):
@@ -83,6 +89,7 @@ def main():
 
     while True:
         event = pygame.event.wait()
+
         if event.type == pygame.QUIT:  # Выход из программы
             break
         elif event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.

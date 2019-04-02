@@ -9,7 +9,7 @@ from common.distance import lonlat_distance
 from common.geocoder import geocode as reverse_geocode
 from common.business import find_business
 
-
+modes = ['map', 'sat', 'skl']
 LAT_STEP = 0.008  # Шаги при движении карты по широте и долготе
 LON_STEP = 0.02
 coord_to_geo_x = 0.0000428  # Пропорции пиксельных и географических координат.
@@ -26,7 +26,8 @@ class MapParams(object):
         self.lat = 55.729738  # Координаты центра карты на старте.
         self.lon = 37.664777
         self.zoom = 16  # Масштаб карты на старте.
-        self.type = "map"  # Тип карты на старте.
+        self.mode_ind = 0
+        self.type = modes[self.mode_ind]  # Тип карты на старте.
         self.k =  2 ** ( 15 - self.zoom)
 
         self.search_result = None  # Найденный объект для отображения на карте.
@@ -36,6 +37,12 @@ class MapParams(object):
     def ll(self):
         return ll(self.lon, self.lat)
 
+    def change_mode(self):
+        self.mode_ind += 1
+        if self.mode_ind == 3:
+            self.mode_ind = 0
+        self.type = modes[self.mode_ind]
+
     # Обновление параметров карты по нажатой клавише.
     def update(self, event):
         if event.key == 280:
@@ -44,6 +51,7 @@ class MapParams(object):
         elif event.key == 281:
             if self.zoom != 0:
                 self.zoom -= 1
+
         elif event.key == 273:
             self.lat += self.k
         elif event.key == 274:
@@ -53,6 +61,8 @@ class MapParams(object):
         elif event.key == 276:
             self.lon -= self.k
 
+        elif event.key == 114:
+            self.change_mode()
 
     # Преобразование экранных координат в географические.
     def screen_to_geo(self, pos):

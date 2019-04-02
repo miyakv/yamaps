@@ -15,6 +15,54 @@ LON_STEP = 0.005
 coord_to_geo_x = 0.0000428  # Пропорции пиксельных и географических координат.
 coord_to_geo_y = 0.0000428
 
+FONT = pygame.font.SysFont('Arial', 22)
+COLOR_INACTIVE = pygame.Color('lightskyblue3')
+COLOR_ACTIVE = pygame.Color('dodgerblue2')
+
+
+class InputBox:
+
+    def __init__(self, x, y, w, h, text=''):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = pygame.Color('lightskyblue3')
+        self.text = text
+        self.txt_surface = FONT.render(text, True, self.color)
+        self.active = False
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if self.rect.collidepoint(event.pos):
+                # Toggle the active variable.
+                self.active = not self.active
+            else:
+                self.active = False
+            # Change the current color of the input box.
+            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    print(self.text)
+                    self.text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                # Re-render the text.
+                self.txt_surface = FONT.render(self.text, True, self.color)
+
+    def update(self):
+        # Resize the box if the text is too long.
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self, screen):
+        # Blit the text.
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        # Blit the rect.
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
+
 
 def ll(x, y):
     return "{0},{1}".format(x, y)
@@ -107,32 +155,53 @@ def get_text(screen):
     screen.blit(text, (0, 450))
 
 
+def button(screen, msg, x, y, w, h, ic, ac, action=None):
+        mouse = pygame.mouse.get_pos()
+        click = pygame.mouse.get_pressed()
+        if x+w > mouse[0] > x and y+h > mouse[1] > y:
+            pygame.draw.rect(screen, ac, (x, y, w, h))
+            if click[0] == 1 and action:
+                action()
+        else:
+            pygame.draw.rect(screen, ic, (x, y, w, h))
+
+        smallText = pygame.font.SysFont("Arial", 21)
+        textSurf, textRect = text_objects(msg, smallText)
+        textRect.center = ((x+(w/2)), (y+(h/2)))
+        screen.blit(textSurf, textRect)
+
+
+def text_objects(text, font):
+        textSurface = font.render(text, True, (255, 255, 255))
+        return textSurface, textSurface.get_rect()
+
+
 def main():
     # Инициализируем pygame
     pygame.init()
     screen = pygame.display.set_mode((600, 480))
     get_text(screen)
-
-
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
+    box = InputBox(50, 450, 200, 30)
 
     while True:
         event = pygame.event.wait()
-
         if event.type == pygame.QUIT:  # Выход из программы
             break
         elif event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.
             mp.update(event)
             print(event.key)
+        box.handle_event(event)
         # другие eventы
 
         # Загружаем карту, используя текущие параметры.
         map_file = load_map(mp)
-
+        button(screen, 'Искать', 520, 450, 80, 30, (0, 200, 0), (0, 255, 0))
         # Рисуем картинку, загружаемую из только что созданного файла.
         screen.blit(pygame.image.load(map_file), (0, 0))
-
+        box.update()
+        box.draw(screen)
         # Переключаем экран и ждем закрытия окна.
         pygame.display.flip()
 

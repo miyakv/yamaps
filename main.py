@@ -27,6 +27,7 @@ class MapParams(object):
         self.lon = 37.664777
         self.zoom = 16  # Масштаб карты на старте.
         self.type = "map"  # Тип карты на старте.
+        self.k =  2 ** ( 15 - self.zoom)
 
         self.search_result = None  # Найденный объект для отображения на карте.
         self.use_postal_code = False
@@ -40,9 +41,17 @@ class MapParams(object):
         if event.key == 280:
             if self.zoom != 17:
                 self.zoom += 1
-        if event.key == 281:
+        elif event.key == 281:
             if self.zoom != 0:
                 self.zoom -= 1
+        elif event.key == 273:
+            self.lat += self.k
+        elif event.key == 274:
+            self.lat -= self.k
+        elif event.key == 275:
+            self.lon += self.k
+        elif event.key == 276:
+            self.lon -= self.k
 
 
     # Преобразование экранных координат в географические.
@@ -94,6 +103,7 @@ def main():
             break
         elif event.type == pygame.KEYUP:  # Обрабатываем различные нажатые клавиши.
             mp.update(event)
+            print(event.key)
         # другие eventы
 
         # Загружаем карту, используя текущие параметры.

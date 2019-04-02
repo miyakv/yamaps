@@ -10,8 +10,8 @@ from common.geocoder import geocode as reverse_geocode
 from common.business import find_business
 
 modes = ['map', 'sat', 'skl']
-LAT_STEP = 0.008  # Шаги при движении карты по широте и долготе
-LON_STEP = 0.02
+LAT_STEP = 0.002  # Шаги при движении карты по широте и долготе
+LON_STEP = 0.005
 coord_to_geo_x = 0.0000428  # Пропорции пиксельных и географических координат.
 coord_to_geo_y = 0.0000428
 
@@ -28,7 +28,7 @@ class MapParams(object):
         self.zoom = 16  # Масштаб карты на старте.
         self.mode_ind = 0
         self.type = modes[self.mode_ind]  # Тип карты на старте.
-        self.k =  2 ** ( 15 - self.zoom)
+        self.k = 2 ** (15 - self.zoom)
 
         self.search_result = None  # Найденный объект для отображения на карте.
         self.use_postal_code = False
@@ -48,18 +48,20 @@ class MapParams(object):
         if event.key == 280:
             if self.zoom != 17:
                 self.zoom += 1
+                self.k = 2 ** (15 - self.zoom)
         elif event.key == 281:
             if self.zoom != 0:
                 self.zoom -= 1
+                self.k = 2 ** (15 - self.zoom)
 
         elif event.key == 273:
-            self.lat += self.k
+            self.lat += LAT_STEP * self.k
         elif event.key == 274:
-            self.lat -= self.k
+            self.lat -= LAT_STEP * self.k
         elif event.key == 275:
-            self.lon += self.k
+            self.lon += LON_STEP * self.k
         elif event.key == 276:
-            self.lon -= self.k
+            self.lon -= LON_STEP * self.k
 
         elif event.key == 114:
             self.change_mode()
@@ -98,10 +100,19 @@ def load_map(mp):
     return map_file
 
 
+def get_text(screen):
+    pygame.font.init()
+    myfont = pygame.font.SysFont('Arial', 20)
+    text = myfont.render('Press R to change map style', True, pygame.Color("white"))
+    screen.blit(text, (0, 450))
+
+
 def main():
     # Инициализируем pygame
     pygame.init()
-    screen = pygame.display.set_mode((600, 450))
+    screen = pygame.display.set_mode((600, 480))
+    get_text(screen)
+
 
     # Заводим объект, в котором будем хранить все параметры отрисовки карты.
     mp = MapParams()
